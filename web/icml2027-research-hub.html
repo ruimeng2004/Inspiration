@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ICML 2027 视觉证据互补研究台</title>
+<style>
+:root{
+  color-scheme:light;
+  --paper:#edf1f4;--surface:#f9fbfc;--raised:#ffffff;--ink:#16243a;--muted:#55647a;--line:#c9d4dd;
+  --accent:#0a6b7f;--accent-soft:#d6e9ed;--harm:#a8285a;--harm-soft:#f5dfe8;--wait:#8a5c00;--wait-soft:#f4e8cc;
+  --serif:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",STSong,SimSun,serif;
+  --sans:"PingFang SC","Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",system-ui,sans-serif;
+  --math:"Cambria Math","STIX Two Math","Latin Modern Math",Georgia,serif;
+  --code:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  color-scheme:dark;
+  --paper:#111925;--surface:#172232;--raised:#1d2a3c;--ink:#e4eaf1;--muted:#a0aebf;--line:#34445a;
+  --accent:#62c3d6;--accent-soft:#17404b;--harm:#f08cb2;--harm-soft:#4c2337;--wait:#e4bb68;--wait-soft:#463717;
+}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--paper);color:var(--ink);font:15px/1.65 var(--sans);display:grid;grid-template-columns:196px minmax(0,1fr);}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+.rail{background:var(--surface);border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;gap:18px;height:100vh;position:sticky;top:0;overflow:auto}
+.brand{font:600 17px/1.35 var(--serif);padding:0 8px}
+.brand small{display:block;font:12px/1.5 var(--sans);color:var(--muted);margin-top:3px}
+nav{display:flex;flex-direction:column;gap:2px}
+nav button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;justify-content:space-between;padding:7px 9px;border-radius:4px;color:var(--muted)}
+nav button:hover{background:var(--paper);color:var(--ink)}
+nav button:focus-visible{outline:2px solid var(--accent)}
+nav button[aria-current=page]{background:var(--accent-soft);color:var(--ink);font-weight:600}
+nav span{font-variant-numeric:tabular-nums;font-size:13px}
+.rail-foot{margin-top:auto;display:flex;flex-direction:column;gap:6px;font-size:13px}
+#save{color:var(--muted);padding:0 4px 6px;line-height:1.45}
+#save.warn{color:var(--harm)}
+.btn{background:var(--raised);border:1px solid var(--line);border-radius:4px;padding:5px 10px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.btn.danger{color:var(--harm)}
+main{min-width:0;height:100vh;overflow:auto}
+.page{padding:26px 30px 44px;max-width:1240px}
+h1{font:600 25px/1.3 var(--serif);margin:0 0 4px}
+h2{font:600 18px/1.4 var(--serif);margin:0 0 10px}
+.lead{color:var(--muted);margin:0 0 20px;max-width:66ch}
+.over{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:30px;align-items:start}
+.time{display:flex;gap:30px;flex-wrap:wrap;padding-bottom:18px;margin-bottom:20px;border-bottom:1px solid var(--line)}
+.time b{font:600 30px/1.1 var(--serif);display:block}
+.time label{display:block;font-size:13px;color:var(--muted)}
+.time input{border:0;background:none;padding:0;font-size:13px;color:var(--muted)}
+.gate{border-left:3px solid var(--line);padding:0 0 14px 14px;margin:0}
+.gate.done{border-color:var(--accent)}
+.gate h3{font:600 15px/1.5 var(--sans);margin:0 0 3px}
+.gate label{display:flex;gap:8px;align-items:flex-start;padding:2px 0;color:var(--muted);font-size:14px}
+.gate input{margin-top:5px;accent-color:var(--accent)}
+.sub{margin-top:24px}
+.mini{list-style:none;margin:0;padding:0}
+.mini li{padding:6px 0;border-bottom:1px solid var(--line)}
+.mini button{all:unset;cursor:pointer}
+.mini button:hover{color:var(--accent)}
+.mini button:focus-visible{outline:2px solid var(--accent)}
+.lattice-box{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px}
+.lattice{position:relative;height:300px;margin:6px auto 8px;max-width:330px}
+.lattice svg{position:absolute;inset:0;width:100%;height:100%}
+.lattice line{stroke:var(--line);stroke-width:1.5}
+.node{position:absolute;transform:translate(-50%,-50%);text-align:center;width:76px}
+.node label{display:block;font:italic 14px/1.2 var(--math);margin-bottom:2px;background:var(--surface)}
+.node input{width:68px;text-align:center;padding:3px;background:var(--raised);border:1px solid var(--line);border-radius:4px}
+.center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;background:var(--surface);padding:4px 8px}
+.center b{font:600 25px/1.1 var(--math);display:block}
+.center span{font-size:12px;color:var(--muted)}
+.config{margin-bottom:18px}
+.verdict{font-size:14px;margin:0}
+.verdict p{margin:6px 0}
+.list-head{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.list-head input,.list-head select{background:var(--raised);border:1px solid var(--line);border-radius:4px;padding:5px 8px;font-size:14px}
+.list-head input{flex:1;min-width:150px;max-width:300px}
+.split{display:grid;grid-template-columns:minmax(280px,38%) minmax(0,1fr);gap:24px;align-items:start}
+.rows{border-top:1px solid var(--line)}
+.row{all:unset;box-sizing:border-box;display:block;width:100%;cursor:pointer;padding:9px 8px;border-bottom:1px solid var(--line)}
+.row:hover{background:var(--surface)}
+.row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.row[aria-selected=true]{background:var(--accent-soft)}
+.row .t{display:block;font-weight:600;line-height:1.45}
+.row .s{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin-top:2px;flex-wrap:wrap}
+.pill{font-size:12px;padding:0 6px;border-radius:3px;background:var(--paper);color:var(--muted);white-space:nowrap}
+.pill.go{background:var(--accent-soft);color:var(--accent)}
+.pill.no{background:var(--harm-soft);color:var(--harm)}
+.pill.wait{background:var(--wait-soft);color:var(--wait)}
+code,.id{font-family:var(--code);font-size:.88em}
+.detail{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px 18px;position:sticky;top:18px;max-height:calc(100vh - 36px);overflow:auto}
+.field{margin-bottom:12px}
+.field>label,.field>.lab{display:block;font-size:13px;color:var(--muted);margin-bottom:3px}
+.field input,.field select,.field textarea{width:100%;background:var(--raised);border:1px solid var(--line);border-radius:4px;padding:6px 8px}
+.field textarea{resize:vertical;min-height:62px;line-height:1.6}
+.field .big{font:600 17px/1.4 var(--serif)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.checks label{display:flex;gap:8px;font-size:14px;padding:2px 0}
+.checks input{width:auto;margin-top:5px;accent-color:var(--accent)}
+.detail-foot{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.empty{color:var(--muted);padding:30px 8px}
+.ref{max-width:72ch}
+.ref section{margin-bottom:24px}
+.ref ul{padding-left:1.2em;margin:6px 0}
+.ref table{border-collapse:collapse;width:100%;font-size:14px}
+.ref td,.ref th{border-bottom:1px solid var(--line);padding:6px 8px 6px 0;text-align:left;vertical-align:top}
+pre{font:13px/1.6 var(--code);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:10px;overflow:auto}
+@media (max-width:980px){.over,.split{grid-template-columns:minmax(0,1fr)}.detail{position:static;max-height:none}}
+@media (max-width:680px){
+  body{display:block}
+  .rail{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);gap:10px}
+  nav{flex-direction:row;overflow:auto}nav button{white-space:nowrap;gap:6px}
+  .rail-foot{flex-direction:row;flex-wrap:wrap;align-items:center}#save{width:100%;padding:0}
+  main{height:auto}.page{padding:18px 15px 34px}.two{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:no-preference){.detail{animation:in .14s ease-out}@keyframes in{from{opacity:.55}to{opacity:1}}}
+</style>
+</head>
+<body>
+<aside class="rail">
+  <div class="brand">视觉证据互补<small>ICML 2027 研究台</small></div>
+  <nav id="nav" aria-label="主导航"></nav>
+  <div class="rail-foot">
+    <div id="save" role="status"></div>
+    <button class="btn" id="linkFile">同步到本地文件</button>
+    <button class="btn" id="exportJson">导出 JSON</button>
+    <button class="btn" id="exportMd">导出 Markdown</button>
+    <button class="btn" id="importJson">导入 JSON</button>
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+  </div>
+</aside>
+<main id="main"></main>
+<script>
+'use strict';
+const KEY='icml2027-research-hub-v1';
+const clone=o=>JSON.parse(JSON.stringify(o));
+const VERIFY='未读取服务器原始产物';
+const ST={
+ ideas:['候选','验证中','暂缓','淘汰','选定'],
+ experiments:['计划中','待授权','运行中','已完成','失败','历史诊断'],
+ papers:['待读','已读摘要','已核对方法','已核对附录'],
+ decisions:['待决定','已决定','已撤销'],
+ notes:['记录','待跟进','已处理']
+};
+const GO=new Set(['选定','验证中','运行中','已完成','已决定','已核对方法','已核对附录','已处理']);
+const NO=new Set(['淘汰','失败','已撤销']);
+const WAIT=new Set(['待授权','待决定','待跟进','暂缓']);
+const CHECKS=['划分已固定，同图问题按组隔离','查看输出前已定样本与标注规则','reader、prompt、解码、单位归一化、工具预算已固定','成本采集含调用、token、延迟、模型评估次数','置信区间按图像或任务组配对','oracle 与未获取像素未进入在线选择','失败和超预算样本保留在分母内','记录 commit、环境、数据指纹、命令和产物路径','未使用 SFT，训练方式为 RL 后训练，只训练 LoRA','运行计划和 pilot 成本符合 1 张 H200'];
+const SCHEMA={
+ ideas:{label:'立题',prefix:'I',title:'title',sub:'route',fields:[
+  {k:'title',l:'标题',t:'title'},{k:'status',l:'状态',t:'status'},{k:'route',l:'路线',t:'select',o:['非次模与结构化互补','贝叶斯实验设计','部分可观测规划','序贯信用分配','基础定义与诊断','其他']},
+  {k:'hypothesis',l:'核心假设',t:'area'},{k:'closest',l:'与最近工作的具体差异',t:'area'},{k:'assumptions',l:'必要假设与迁移障碍',t:'area'},
+  {k:'rl',l:'在 RL 后训练中的作用',t:'area'},{k:'test',l:'最小判别实验',t:'area'},{k:'kill',l:'淘汰条件',t:'area'},{k:'cost',l:'实现与计算成本估计',t:'area'},{k:'links',l:'关联实验',t:'links',to:'experiments'}]},
+ experiments:{label:'实验',prefix:'E',title:'title',sub:'phase',fields:[
+  {k:'title',l:'实验名称',t:'title'},{k:'status',l:'状态',t:'status'},{k:'phase',l:'阶段',t:'select',o:['A 审计','B 诊断','C 推理对照','D RL 后训练']},
+  {k:'idea',l:'关联立题',t:'link',to:'ideas'},{k:'runId',l:'运行目录',t:'code'},{k:'reader',l:'Reader 与 revision',t:'text'},
+  {k:'question',l:'要回答的问题',t:'area'},{k:'protocol',l:'协议与条件',t:'area'},{k:'units',l:'独立单元与样本量',t:'text'},{k:'budget',l:'资源预算与授权',t:'text'},
+  {k:'result',l:'结果',t:'area'},{k:'boundary',l:'解释边界',t:'area'},{k:'verified',l:'来源核对',t:'text'},{k:'checks',l:'运行前检查',t:'checks'}]},
+ papers:{label:'文献',prefix:'P',title:'title',sub:'venue',fields:[
+  {k:'title',l:'论文',t:'title'},{k:'status',l:'核对状态',t:'status'},{k:'venue',l:'版本与来源',t:'text'},{k:'url',l:'链接',t:'url'},
+  {k:'problem',l:'研究问题',t:'area'},{k:'state',l:'状态、动作与信息边界',t:'area'},{k:'objective',l:'目标函数与优化机制',t:'area'},{k:'supervision',l:'监督来源与成本',t:'area'},
+  {k:'data',l:'数据与基线',t:'area'},{k:'theory',l:'理论假设',t:'area'},{k:'covered',l:'已覆盖能力',t:'area'},{k:'open',l:'尚未回答（标明作者结论或推断）',t:'area'},{k:'loc',l:'原文位置',t:'text'}]},
+ decisions:{label:'决策',prefix:'D',title:'title',sub:'date',fields:[
+  {k:'title',l:'决策',t:'title'},{k:'status',l:'状态',t:'status'},{k:'date',l:'日期',t:'date'},
+  {k:'evidence',l:'现象证据',t:'area'},{k:'diff',l:'最近方法差异',t:'area'},{k:'assume',l:'必要假设',t:'area'},{k:'feasible',l:'计算可行性',t:'area'},{k:'counter',l:'反证',t:'area'},{k:'next',l:'下一步最小实验',t:'area'}]},
+ notes:{label:'记录',prefix:'N',title:'title',sub:'date',fields:[
+  {k:'title',l:'标题',t:'title'},{k:'status',l:'状态',t:'status'},{k:'date',l:'日期',t:'date'},{k:'tags',l:'标签',t:'text'},{k:'body',l:'内容',t:'area',rows:9}]}
+};
+const VIEWS=[['home','总览'],['ideas','立题'],['experiments','实验'],['papers','文献'],['decisions','决策'],['notes','记录'],['spec','Spec 要点']];
+const V6={ideas:[
+{title:'多观察收益分解与互补感知 RL 数据选择',status:'候选',route:'基础定义与诊断',hypothesis:'先分解多看一次的收益，再按互补、冗余、有害和无需工具分层，比只按难度采样更能提供互补学习信号。',closest:'DeepEyes 按信息增益筛选，Vision-G1 按影响函数和难度筛选；本轮未见按互补类型筛选工具 RL 数据的工作，检索有限。',assumptions:'强互补样本要足够多，分层标签要稳定，且不能泄漏测试集。',rl:'主要改变 LoRA RL 的训练数据分布，不改变 GRPO 主体。',test:'比较随机采样、难度采样和互补感知采样，并报告收益分解。',kill:'互补样本过少，或采样策略相对难度采样无增益。',cost:'主要是训练前诊断，需实测 Qwen3-VL-8B 吞吐。',links:[]},
+{title:'多阶段 Pandora 式视觉证据获取',status:'候选',route:'贝叶斯实验设计',hypothesis:'把缩略图、粗裁剪、细裁剪看作逐级揭示信息，可学习先看什么、再看什么和何时停止。',closest:'需逐篇核对 Calibrate-Then-Act、ToolGate 和 Scores Are Not Decisions；它们不一定处理视觉互补。',assumptions:'经典指数策略依赖较强结构，视觉互补会破坏独立性，已知先验也不成立。',rl:'可把估计的继续观察价值和停止价值作为 RL 信号或训练提示。',test:'待读文献后定义多阶段状态、观察成本和最小对照。',kill:'无法定义稳定价值，或相对简单阈值停止没有明显优势。',cost:'待估。',links:[]}],
+papers:[
+{title:'Optimization with Costly Information: a survey',status:'已读摘要',venue:'Chawla，HALG 2026 综述报告',url:'https://www.cs.utexas.edu/~shuchi/talks/HALG-Survey-6-9-26.pdf',covered:'Pandora Box、Gittins 指数、多阶段信息获取。',open:'下一步精读：多阶段模型假设及其对互补的限制。'},
+{title:'Calibrate-Then-Act',status:'已读摘要',venue:'arXiv 2602.16699',url:'https://arxiv.org/html/2602.16699v1',covered:'把部分问题形式化为不确定下的序贯决策，并显式提供先验；含 Pandora Box 示例。',open:'核对能否用于视觉证据和互补任务。'},
+{title:'ToolGate',status:'已读摘要',venue:'arXiv 2606.03054',url:'https://arxiv.org/html/2606.03054',covered:'调用前预测工具调用的正边际价值，关联信息价值。',open:'核对单次调用门控与证据组依赖的差异。'},
+{title:'Scores Are Not Decisions',status:'待读',venue:'arXiv 2607.27083',url:'https://arxiv.org/pdf/2607.27083',covered:'面向工具获取的成本感知停止。',open:'需读全文，判断与多阶段获取的重叠。'},
+{title:'Efficient Cost-Aware LLM Evaluation via Bayesian Bandit Gittins Indices',status:'已读摘要',venue:'ICML 2026',url:'https://icml.cc/virtual/2026/69077',covered:'用 Gittins 指数按信息价值分配评估查询。',open:'核对能否作为反事实查询预算分配基线。'},
+{title:'Vision-G1',status:'已读摘要',venue:'arXiv 2508.12680',url:'https://arxiv.org/html/2508.12680v1',covered:'影响函数和难度筛选的多轮 RL 数据课程。',open:'核对与互补感知采样的差异。'},
+{title:'MED：What Does Vision Tool-Use RL Really Learn?',status:'已核对方法',venue:'ICML 2026，arXiv 2602.01334',url:'https://arxiv.org/abs/2602.01334',covered:'分解模型提升、工具增益和工具伤害。',open:'结论限于 crop-and-zoom；作者未提出新算法。'},
+{title:'NTEP-R',status:'已核对方法',venue:'arXiv 2609.03493',url:'https://arxiv.org/abs/2609.03493',covered:'teacher 生成必要证据路径，judge 打分并惩罚重复。',open:'依赖 teacher 和语义判断。'}],
+notes:[
+{title:'立题讨论阶段总结',status:'记录',date:'2026-11-02',tags:'立题,文献',body:'当前方向恢复为视觉证据互补，不收窄为信用分配或前后动作互补。约束为 RL 后训练、LoRA、不做 SFT、1 张 H200。\nActiveEvidence 研究互补证据获取，但主要是监督控制器和决策证书；二阶交互选证据不能作为本项目创新。\n最拥挤的是工具调用 RL 和单次调用信用；互补结构进入 RL 后训练相对较空，但新颖性未确认。\n候选路线：多观察收益分解 + 互补感知数据选择；多阶段 Pandora 式证据获取。'},
+{title:'下一步精读清单',status:'待跟进',date:'2026-11-02',tags:'文献',body:'精读 Chawla 综述、Calibrate-Then-Act、ToolGate、Scores Are Not Decisions，再判断多阶段 Pandora 路线是否进入立题。'}]};
+const STATUS_V6={'P-2':'已核对方法','P-3':'已核对方法','P-4':'已核对方法','P-5':'已核对方法','P-1':'已核对方法'};
+function nextId(arr,pre){return pre+'-'+(Math.max(0,...arr.map(x=>+String(x.id).split('-')[1]||0))+1)}
+function addV6(d){for(const c of ['ideas','papers','notes'])for(const x of V6[c])if(!d[c].some(y=>y.title===x.title)){const n=clone(x);n.id=nextId(d[c],c==='ideas'?'I':c==='papers'?'P':'N');d[c].unshift(n)}
+ for(const[k,v] of Object.entries(STATUS_V6)){const x=d.papers.find(y=>y.id===k);if(x&&['待读','已读摘要'].includes(x.status))x.status=v}
+ d.meta.configV=6;return d}
+const CONFIG={training:'仅 RL 后训练，不做 SFT',finetune:'LoRA 微调，不做全参数训练',compute:'1 张 H200'};
+const I6={id:'I-6',title:'观察的使能价值：前后动作视觉证据互补',status:'选定',route:'贝叶斯实验设计',hypothesis:'前序观察可能不直接提供答案，但能改变后续动作，帮助模型到达关键证据。',closest:'AXPO 在调用边界重采样调用和后续以恢复探索信号；本方向替换已返回的前序观察，再重采样下一动作，以度量观察对动作的影响。差异待读全文核对。',assumptions:'需要合法的 null 观察、足够的指向型样本，且重采样噪声可控。',rl:'把有界的使能信用作为 GRPO 奖励的一部分；GRPO 只作训练工具。',test:'比较真实前序观察和 null 观察下，到达关键证据的概率、行动效应与回答效应。',kill:'行动效应很小、无法稳定估计，或 RL 没有增益时，退回效应分解与审计论文。',cost:'单卡需实测重采样吞吐，并只评估部分调用。',links:[]};
+const D5={id:'D-5',title:'主线锁定为前后动作视觉证据互补',status:'已决定',date:'2026-11-02',evidence:'用户在比较回答互补和前后动作互补后选定；理论比重适中，目标 ICML。',diff:'重点是观察通过改变后续动作产生的价值，而不是单次答案变化或路径标注。',assume:'行动效应在指向型任务上可测，Qwen3-VL-8B 能在无 SFT 下稳定调用工具。',feasible:'先做离线分解和单卡吞吐测试。',counter:'行动效应过小或 RL 无增益。',next:'读完 IGPO 和 Look Less, Reason More，写正式定义，再做 E1–E3。'};
+const P18={id:'P-18',title:'AXPO',status:'已读摘要',venue:'arXiv 2605.28774，2026.05',url:'https://arxiv.org/abs/2605.28774',covered:'对全错的工具子组固定思考前缀，重采样工具调用及后续。',open:'核对是否分析前序观察对后续动作的影响。'};
+const D6={id:'D-6',title:'研究方向恢复为视觉证据互补，前后动作互补只作子方向',status:'已决定',date:'2026-11-02',evidence:'用户要求回到总方向，并优先选择可靠工作。',diff:'',assume:'',feasible:'先做多观察收益分解，再用诊断结果决定 RL 设计。',counter:'',next:'阅读 Vision-G1 等数据选择工作，定义分解指标和互补分层。'};
+const D4={id:'D-4',title:'微调方式固定为 LoRA，不做全参数训练',status:'已决定',date:'2026-11-02',evidence:'用户在 spec 0.1 之后新增的指示。',diff:'所有 RL 对照都使用相同 LoRA 配置；全参数结果不能直接比较。',assume:'LoRA 范围和 rank 待定。',feasible:'需在 E-7 中实测 adapter 更新和推理同步成本。',counter:'',next:'E-7 记录 LoRA 目标模块、rank、可训练参数量和吞吐。'};
+const GATE_D={n:'阶段 D：RL 后训练',i:[['固定初始权重、reader 与工具协议',0],['结果奖励基线在单卡上完成 pilot',0],['单步信用基线可匹配比较',0],['新信号在相同样本和预算下比较',0]]};
+const OLD_D='阶段 D：是否进行策略训练';
+const RL={'I-1':'把反事实查询用于估计 RL 优势信号，而不是训练 SFT 回归器；目标是减少每条轨迹需要的额外 reader 调用。','I-2':'把改答价值作为停止和获取动作的优势信号，并比较结果奖励。','I-3':'修正效用定义，避免 RL 奖励学到顺序或评分噪声。','I-4':'直接提供策略优化信号，现在是主线候选。','I-5':'只作规划对照；RL 后训练不依赖它。'};
+const I4NEW={closest:'必须与 SSVPO、TACO、CounterCredit 逐项比较信息边界、分支预算、合法反事实和成本定价。',cost:'高；需在 1 张 H200 上先测分支采样吞吐。'};
+const E7={id:'E-7',title:'单卡 RL 后训练基线 pilot',status:'计划中',phase:'D RL 后训练',idea:'I-4',runId:'',reader:'待选',question:'在 1 张 H200 上，结果奖励和单步信用的吞吐、方差和收益如何？',protocol:'相同初始权重、LoRA 配置、样本、工具协议和预算；不含 SFT 和全参数训练。先测轨迹生成和反事实分支的吞吐，再决定规模。',units:'待定，按图像分组',budget:'1 张 H200，启动前需授权',result:'',boundary:'pilot 只用于估计吞吐和方差，不作为方法收益。',verified:'',checks:[]};
+const seed=()=>({version:1,meta:{configV:4,config:clone(CONFIG),abstract:'2027-01-16',paper:'2027-01-22',lat:{e:.5,a:.73,b:.73,ab:.88},gates:[
+ {n:'阶段 A：文献与代码审计',i:[['文献差异矩阵，含七篇重点文献与新增同期工作',0],['四条经典路线的假设、障碍和最低成本',0],['代码、数据和原始结果索引',0],['统一基本评测协议',0]]},
+ {n:'阶段 B：互补结构与失败机制诊断',i:[['受控任务覆盖互补、冗余、独立、有害证据',0],['自然数据的任务结构核查',0],['顺序、下一步选择、真实与替换观察对照',0],['小候选池枚举的离线诊断上界',0]]},
+ {n:'阶段 C：推理时算法对照',i:[['固定 reader 与工具协议',0],['直接阅读、随机、贪心、组合选择基线',0],['计入选择、预览和搜索成本后的比较',0]]},
+ clone(GATE_D)]},
+ ideas:[
+ clone(I6),
+ {id:'I-1',title:'低查询成本的互补优势估计',status:'候选',route:'非次模与结构化互补',hypothesis:'互补结构稀疏时，无需枚举全部配对效用，就能用少量带噪查询恢复对决策有影响的二阶及以上交互。',closest:'ActiveEvidence 显式建模到二阶，配对目标用 14750 次调用；可核对的切入点是训练查询量和高阶结构。此差异是我的推断。',assumptions:'未获取像素不可用，因此高成本查询主要发生在离线训练；线上需摊销。效用含噪、可能非单调。',test:'在 8 到 12 项候选上做完全枚举，比较相同查询预算下的结构恢复和决策 regret。',kill:'枚举后高阶项对决策无影响，或稀疏性不成立。',cost:'受控枚举成本随候选数指数增长，需先小规模试运行。',links:['E-5','E-6']},
+ {id:'I-2',title:'决策相关的非短视获取与停止',status:'候选',route:'贝叶斯实验设计',hypothesis:'以“能否改变最终答案”为目标，比熵或置信度更能预测有价值的观察和停止时机。',closest:'需核对 FOVEA 的代理目标与 ActiveEvidence 的预览配对分支；后者已对预览做后续价值监督。',assumptions:'未来观察分布和价值估计要足够可靠；Pandora 类指数在相关效用下不直接成立。',test:'比较信息增益、改答概率和离线真实收益的排序一致性，并统计选错动作的 regret。',kill:'决策相关目标未显著优于简单置信度或单项贪心。',cost:'以中小规模 reader 重放为主。',links:['E-6']},
+ {id:'I-3',title:'顺序敏感 reader 下的互补定义与诊断',status:'候选',route:'基础定义与诊断',hypothesis:'reader 顺序敏感时，U(E) 不是良定义的集合函数；需要序列效用或对称化效用，并分离内容互补与整合失败。',closest:'这是后续路线的测量基础，单独是否足以成文待定。',assumptions:'候选排列数可控；需要可靠概率或足够重复。',test:'对固定证据枚举顺序，分解内容效应、顺序效应和 scorer 效应。',kill:'跨样本顺序方差可忽略。',cost:'低，适合最先运行。',links:['E-5']},
+ {id:'I-4',title:'合法反事实下的序贯联合信用',status:'候选',route:'序贯信用分配',hypothesis:'联合信用可比结果奖励和单步贡献更稳定地训练观察策略。',closest:I4NEW.closest,assumptions:'删除或重排观察后的轨迹仍合法；估计方差可控。',test:'用相同初始权重比较结果奖励、单步信用和联合信用的归因方差、样本效率和最终准确率与成本。',kill:'与现有信用方法无实质差异，或单卡预算下优势信号方差过高。',cost:I4NEW.cost,links:[]},
+ {id:'I-5',title:'有限深度部分可观测规划',status:'暂缓',route:'部分可观测规划',hypothesis:'有限深度搜索能捕捉观察改变后续动作价值的情形。',closest:'需确认能否优于组合选择和简单贪心。',assumptions:'需要可信观察生成机制；模型想象不能当真实反馈。',test:'先做 oracle 分支上界，再用预测观察替换，分解搜索误差和预测误差。',kill:'oracle 上界相对组合选择无明显优势。',cost:'中到高。',links:[]}],
+ experiments:[
+ {id:'E-1',title:'共享证据探针冒烟测试',status:'历史诊断',phase:'A 审计',idea:'',runId:'evidence_probe_smoke_shared_20261030_02',reader:'',question:'工程链路和证据探针是否可用？',protocol:'',units:'12 图',budget:'424 请求',result:'424 请求完成。',boundary:'只是工程与证据探针检查。',verified:VERIFY,checks:[]},
+ {id:'E-2',title:'ActiveEvidence 风格 4B 冒烟测试',status:'历史诊断',phase:'A 审计',idea:'',runId:'active_evidence_4b_smoke_20261030_01',reader:'Qwen3-VL-4B（需确认 revision）',question:'零样本效用预测和成对图选择是否工作？',protocol:'四象限候选，最多两次裁剪。',units:'12 图',budget:'276 请求',result:'图策略和单点策略全部 STOP；诊断分数与直接阅读同为 0.6667。',boundary:'尚未证明选择收益；需检查效用估计和可获益样本。',verified:VERIFY,checks:[]},
+ {id:'E-3',title:'风筝固定案例复验',status:'历史诊断',phase:'B 诊断',idea:'I-3',runId:'active_revalidation_20261030_01',reader:'需确认',question:'固定案例中的单 crop 与双 crop 顺序效应。',protocol:'',units:'1 个固定案例；20 种子是同图解码重复',budget:'',result:'单 crop 80%，正序双 crop 0%，逆序 60%。',boundary:'20 种子不是 20 个独立图像。这里联合输入低于单 crop，不能作为互补证据。',verified:VERIFY,checks:[]},
+ {id:'E-4',title:'Reader 协议控制',status:'历史诊断',phase:'B 诊断',idea:'I-3',runId:'reader_protocol_control_20261030_01',reader:'需确认',question:'评分和协议是否解释固定案例差异？',protocol:'中性协议；百分比案例做单位归一化。',units:'2 图',budget:'800 请求',result:'风筝单 crop 100%、正序 0%、逆序 80%；百分比案例归一化后各条件 100%。',boundary:'支持固定案例的顺序与评分诊断，不能推出普遍互补。',verified:VERIFY,checks:[]},
+ {id:'E-5',title:'顺序、内容与评分分解',status:'计划中',phase:'B 诊断',idea:'I-3',runId:'',reader:'待选',question:'历史“顺序效应”有多少来自内容互补、reader 整合或 scorer？',protocol:'固定证据集合，枚举输入顺序；比较真实观察、替换观察和官方评分。',units:'待定，受控任务 pilot 50 到 100 道',budget:'待授权',result:'',boundary:'pilot 只用于估计方差。',verified:'',checks:[]},
+ {id:'E-6',title:'贪心缺口枚举',status:'计划中',phase:'B 诊断',idea:'I-1',runId:'',reader:'待选',question:'小候选池上，单项贪心离枚举最优有多远，二阶是否够用？',protocol:'枚举 K 不超过预算的全部子集；比较随机、单项贪心、配对、枚举最优；同时报告概率和 log-odds 尺度。',units:'待定，按图像分组',budget:'待授权',result:'',boundary:'枚举最优是离线诊断上界，不是在线方法。',verified:'',checks:[]},
+ clone(E7)],
+ papers:[
+ clone(P18),
+ {id:'P-1',title:'ActiveEvidence',status:'已核对方法',venue:'arXiv 2610.20532，2026.10',url:'https://arxiv.org/abs/2610.20532',problem:'何时已计算足够的交互结构，可以认证某次视觉获取决策。',state:'免费元数据与付费观察分离；动作含 STOP、ABSTAIN、PREVIEW 和最多 K 项的原子 bundle 获取。',objective:'约束 MDP 形式；CEIG 一阶加二阶打分，配对区间与差距驱动细化，给出 ε 决策证书。',supervision:'640 案例；7488 单项、14750 配对、3072 预览分支；16.4 GPU 小时。',data:'DocVQA、ChartQA、SceneInspect、WebUI；Qwen2.5-VL-7B；含多组基线与消融。',theory:'证书是相对固定模型的；对真实效用的偏差另行测量。作者说明正交互可违反递减收益，自适应贪心条件需检验。',covered:'状态条件交互、条件伤害、预览后续价值、预算风险证书、回放审计。',open:'作者列了高阶压力测试但本次未见其结果表。推断：普通获取动作的非短视价值和合法性依赖仍可继续核对。\n待核对：正文 accepted calls 为 1.74，附录 row audit 为 1.03；always-on 分别为 4.93 和 1.63。',loc:'§3.4、附录 D.1、D.8、D.9、D.10、C.4'},
+ {id:'P-2',title:'FOVEA：Perceptual Bandwidth Bottleneck',status:'已读摘要',venue:'arXiv 2605.01345v3，2026.05',url:'https://arxiv.org/abs/2605.01345',problem:'在有限感知带宽下决定获取哪些高分辨率视觉证据。',objective:'序贯贝叶斯实验设计；覆盖与分辨率效用，经 resolvability probing 估计。',covered:'无需训练的推理时观察优化。',open:'核对代理目标、搜索过程及互补性覆盖。'},
+ {id:'P-3',title:'TACO',status:'待读',venue:'arXiv 2606.30251，2026.06',url:'https://arxiv.org/abs/2606.30251',covered:'spec 摘要：调用前后回答探针的差分贡献、结果门控优势路由。',open:'核对单步边际、延迟收益和探针成本的关系。'},
+ {id:'P-4',title:'CounterCredit',status:'待读',venue:'arXiv 2609.22910，2026.09',url:'https://arxiv.org/abs/2609.22910',covered:'spec 摘要：对比立即回答与调用分支，对比真实 crop 与随机同尺寸 patch。',open:'核对反事实信息、分支预算及成本定价。'},
+ {id:'P-5',title:'The Illusion of Visual Tool-Use',status:'待读',venue:'arXiv 2608.06270，2026.08',url:'https://arxiv.org/abs/2608.06270',covered:'spec 摘要：policy、trajectory、step 干预。',open:'用干预验证收益是否来自图像证据。'},
+ {id:'P-6',title:'Diversity Over Frequency',status:'待读',venue:'arXiv 2606.00096，2026.05',url:'https://arxiv.org/abs/2606.00096',covered:'spec 摘要：调用下降与准确率改善并存；熵正则促进轨迹探索。',open:'分开衡量调用频率、动作多样性、语言多样性与成功探索。'},
+ {id:'P-7',title:'SSVPO',status:'待读',venue:'ICLR 2026',url:'https://proceedings.iclr.cc/paper_files/paper/2026/hash/4da4dd613cc9e63932d643b9c6e8f86f-Abstract-Conference.html',covered:'spec 摘要：insertion MDP、Sequential Shapley、步骤信用。',open:'核对合法重排、优势基线与理论条件。'},
+ {id:'P-8',title:'Global Context or Local Detail?',status:'待读',venue:'arXiv 2604.24396，本次检索新增',url:'https://arxiv.org/abs/2604.24396',covered:'检索片段：把 Thinking with Images 写成预算内视觉证据获取。'},
+ {id:'P-9',title:'PixelEyes',status:'待读',venue:'arXiv 2607.00115，本次检索新增',url:'https://arxiv.org/abs/2607.00115',covered:'检索片段：解耦感知与推理的视觉证据搜索。'},
+ {id:'P-10',title:'PERIA',status:'待读',venue:'arXiv 2606.12830，本次检索新增',url:'https://arxiv.org/abs/2606.12830',covered:'检索片段：工具增强视觉智能体，训练感知与交互工具组合。'},
+ {id:'P-11',title:'Adaptive Submodularity',status:'待读',venue:'经典，spec 列出',url:'https://arxiv.org/abs/1003.3967',theory:'不得把单调或自适应次模条件直接用于实际 VLM。'},
+ {id:'P-12',title:'Capturing Complementarity in Set Functions',status:'待读',venue:'经典，spec 列出',url:'https://www.microsoft.com/en-us/research/wp-content/uploads/2018/11/itcs19_complementarity.pdf'},
+ {id:'P-13',title:'POMCP',status:'待读',venue:'经典，spec 列出',url:'https://papers.neurips.cc/paper/2010/file/edfbe1afcf9246bb0d40eb4d8027d90f-Paper.pdf'},
+ {id:'P-14',title:'Shapley–Taylor Interaction Index',status:'待读',venue:'经典，spec 列出',url:'https://proceedings.mlr.press/v119/sundararajan20a.html'},
+ {id:'P-15',title:'Near-optimal Nonmyopic Value of Information',status:'待读',venue:'Krause & Guestrin 2005，建议新增，链接待补',url:'',theory:'待核对：观察在隐变量条件下独立时，信息增益具有次模性。'},
+ {id:'P-16',title:'Pandora’s Box（Weitzman 1979）',status:'待读',venue:'建议新增，链接待补',url:'',covered:'有开箱成本和停止规则的序贯搜索。'},
+ {id:'P-17',title:'EC² 与决策区域判定',status:'待读',venue:'Golovin et al. 2010、Javdani et al. 2014，建议新增，链接待补',url:'',covered:'以区分决策而非降低全部不确定性为目标。'}],
+ decisions:[
+ clone(D6),
+ clone(D5),
+ {id:'D-1',title:'保留宽研究范围，算法路线暂不固定',status:'已决定',date:'2026-11-02',evidence:'来自 spec 0.1：HIVE 只是工作名，不固定模型、reward 或单一任务。',diff:'',assume:'',feasible:'',counter:'',next:'完成文献差异矩阵和阶段 B 诊断。'},
+ clone(D4),
+ {id:'D-3',title:'训练方式固定为 RL 后训练，算力为 1 张 H200',status:'已决定',date:'2026-11-02',evidence:'用户在 spec 0.1 之后新增的指示。',diff:'FOVEA 这类无需训练的方法只作基线；SFT 控制器不进入候选。',assume:'',feasible:'吞吐和规模需由 E-7 实测。',counter:'',next:'E-7 单卡基线 pilot。'},
+ {id:'D-2',title:'选择两条主线进入阶段 C',status:'待决定',date:'',evidence:'',diff:'',assume:'',feasible:'',counter:'',next:'E-5、E-6 完成后填写。'}],
+ notes:[
+ {id:'N-1',title:'ICML 2027 日期仍是预估',status:'待跟进',date:'2026-11-02',tags:'时间线',body:'第三方页面按上届推算：摘要 2027-01-16 AoE，论文 2027-01-22 AoE。官方 CFP 发布后在总览更新。'},
+ {id:'N-2',title:'ActiveEvidence 数字需回到原文核对',status:'待跟进',date:'2026-11-02',tags:'文献',body:'正文 Table 2 的 accepted calls 为 1.74，附录 C.4 的 held-out row audit 为 1.03；always-on 为 4.93 与 1.63。引用基线前先确认口径。'}]
+});
+let S,storageOK=true,fileHandle=null,timer=null,view='home',sel=null,q='',flt='';
+function valid(d){return d&&typeof d==='object'&&d.meta&&Array.isArray(d.meta.gates)&&Object.keys(SCHEMA).every(k=>Array.isArray(d[k]))}
+function fresh(){const d=seed();d.ideas.forEach(x=>x.rl=x.rl||RL[x.id]||'');const i=d.ideas.find(x=>x.id==='I-6');i.status='候选';d.decisions.find(x=>x.id==='D-5').status='已撤销';return addV6(d)}
+function load(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);if(valid(d))return migrate(d)}}catch(e){storageOK=false}return fresh()}
+function addCheck(d){const e=d.experiments.find(x=>x.id==='E-7');if(e&&e.protocol&&!e.protocol.includes('LoRA'))e.protocol+=' 全部 RL 对照使用相同 LoRA 配置。'}
+function addD4(d){if(!d.decisions.some(x=>x.title===D4.title)){const n=clone(D4);if(d.decisions.some(x=>x.id==='D-4'))n.id='D-'+(Math.max(...d.decisions.map(x=>+x.id.split('-')[1]||0))+1);d.decisions.unshift(n)}}
+function pivot(d){const i=d.ideas.find(x=>x.id==='I-6');if(i&&i.status==='选定')i.status='候选';const k=d.decisions.find(x=>x.title===D5.title);if(k&&k.status==='已决定')k.status='已撤销';if(!d.decisions.some(x=>x.title===D6.title)){const n=clone(D6);if(d.decisions.some(x=>x.id==='D-6'))n.id='D-'+(Math.max(...d.decisions.map(x=>+x.id.split('-')[1]||0))+1);d.decisions.unshift(n)}d.meta.configV=5;return d}
+function migrate(d){
+ if((d.meta.configV||0)>=6)return d;
+ if((d.meta.configV||0)===5)return addV6(d);
+ if((d.meta.configV||0)===4)return addV6(pivot(d));
+ if(!d.ideas.some(x=>x.title===I6.title))d.ideas.unshift(clone(I6));
+ if(!d.decisions.some(x=>x.title===D5.title))d.decisions.unshift(clone(D5));
+ if(!d.papers.some(x=>x.title==='AXPO'))d.papers.unshift(clone(P18));
+ if((d.meta.configV||0)===3)return addV6(pivot(d));
+ if((d.meta.configV||0)===2){d.meta.config=d.meta.config||clone(CONFIG);d.meta.config.finetune=d.meta.config.finetune||CONFIG.finetune;addD4(d);addCheck(d);return addV6(pivot(d))}
+ d.meta.config=d.meta.config||clone(CONFIG);d.meta.config.finetune=d.meta.config.finetune||CONFIG.finetune;addD4(d);
+ d.meta.gates=d.meta.gates.map(g=>g.n===OLD_D&&!g.i.some(i=>i[1])?clone(GATE_D):g);
+ d.ideas.forEach(x=>{if(RL[x.id]&&!x.rl)x.rl=RL[x.id]});
+ const i1=d.ideas.find(x=>x.id==='I-1');if(i1&&i1.title==='低标注成本的高阶互补结构学习')i1.title='低查询成本的互补优势估计';
+ const i4=d.ideas.find(x=>x.id==='I-4');if(i4&&i4.status==='暂缓')i4.status='候选';
+ if(!d.experiments.some(x=>x.id==='E-7'))d.experiments.push(clone(E7));
+ const y=seed();
+ if(!d.decisions.some(x=>x.title===y.decisions.find(z=>z.id==='D-3').title)){const n=y.decisions.find(z=>z.id==='D-3');if(d.decisions.some(x=>x.id==='D-3'))n.id='D-'+(Math.max(...d.decisions.map(x=>+x.id.split('-')[1]||0))+1);d.decisions.unshift(n)}
+ return addV6(pivot(d));
+}
+function saveNow(){
+ let ok=true;try{localStorage.setItem(KEY,JSON.stringify(S));storageOK=true}catch(e){ok=false;storageOK=false}
+ const stamp=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+ setSave(ok?`已保存到本机浏览器 ${stamp}`:'浏览器存储不可用，关闭页面前请导出 JSON',!ok);
+ if(fileHandle)writeFile(stamp);
+}
+async function writeFile(stamp){try{const w=await fileHandle.createWritable();await w.write(JSON.stringify(S,null,2));await w.close();setSave(`已同步到 ${fileHandle.name} ${stamp}`)}catch(e){fileHandle=null;setSave('文件同步已中断，请重新选择文件',true)}}
+function setSave(t,w){const e=document.getElementById('save');e.textContent=t;e.classList.toggle('warn',!!w)}
+function touch(){clearTimeout(timer);timer=setTimeout(saveNow,250)}
+const h=(t,a={},...c)=>{const e=document.createElement(t);for(const[k,v]of Object.entries(a)){if(k==='class')e.className=v;else if(k.startsWith('on'))e.addEventListener(k.slice(2),v);else if(k==='text')e.textContent=v;else if(v!==false&&v!=null)e.setAttribute(k,v===true?'':v)}c.flat().forEach(x=>x!=null&&e.append(x));return e};
+function pillClass(s){return 'pill'+(GO.has(s)?' go':NO.has(s)?' no':WAIT.has(s)?' wait':'')}
+function nav(){const n=document.getElementById('nav');n.replaceChildren(...VIEWS.map(([v,l])=>h('button',{'aria-current':view===v?'page':null,onclick:()=>go(v)},l,S[v]?h('span',{text:S[v].length}):null)))}
+function go(v,id){view=v;sel=id||null;q='';flt='';location.hash=id?`${v}/${id}`:v;render()}
+function render(){nav();const m=document.getElementById('main');m.scrollTop=0;
+ if(view==='home')home(m);else if(view==='spec')spec(m);else collection(m)}
+function days(d){const t=new Date(d+'T23:59:59-12:00')-new Date();return isNaN(t)?'–':Math.ceil(t/864e5)}
+function home(m){
+ const active=[...S.ideas.filter(x=>x.status==='验证中'||x.status==='候选').map(x=>['ideas',x]),...S.experiments.filter(x=>['运行中','待授权','计划中'].includes(x.status)).map(x=>['experiments',x])];
+ const follow=S.notes.filter(n=>n.status==='待跟进');
+ const dateBlock=(k,l)=>h('div',{},h('b',{text:`${days(S.meta[k])} 天`}),h('label',{},l+'（预估，AoE）',h('br'),h('input',{type:'date',value:S.meta[k],'aria-label':l+'日期',onchange:e=>{S.meta[k]=e.target.value;touch();render()}})));
+ m.replaceChildren(h('div',{class:'page'},
+  h('h1',{text:'哪些观察放在一起才更有价值？'}),
+  h('p',{class:'lead',text:'在这里跟踪立题、实验和证据。历史结果在核对原始产物前只作诊断。'}),
+  h('div',{class:'time'},dateBlock('abstract','摘要截止'),dateBlock('paper','论文截止')),
+  h('div',{class:'over'},
+   h('div',{},h('h2',{text:'阶段门'}),...S.meta.gates.map(g=>{const done=g.i.every(i=>i[1]);return h('section',{class:'gate'+(done?' done':'')},h('h3',{text:`${g.n}（${g.i.filter(i=>i[1]).length}/${g.i.length}）`}),...g.i.map(it=>h('label',{},h('input',{type:'checkbox',checked:!!it[1],onchange:e=>{it[1]=e.target.checked?1:0;touch();render()}}),h('span',{text:it[0]}))))}),
+    h('div',{class:'sub'},h('h2',{text:'正在推进'}),h('ul',{class:'mini'},...active.map(([v,x])=>h('li',{},h('button',{onclick:()=>go(v,x.id)},`${x.id} ${x.title}`),' ',h('span',{class:pillClass(x.status),text:x.status}))))),
+    follow.length?h('div',{class:'sub'},h('h2',{text:'待跟进'}),h('ul',{class:'mini'},...follow.map(x=>h('li',{},h('button',{onclick:()=>go('notes',x.id)},x.title))))):null),
+   h('div',{},configBox(),latticeBox()))));
+ updateLattice();
+}
+function configBox(){
+ const C=S.meta.config=S.meta.config||clone(CONFIG),f=(k,l)=>h('div',{class:'field'},h('label',{for:'cfg-'+k,text:l}),h('input',{id:'cfg-'+k,value:C[k]||'',oninput:e=>{C[k]=e.target.value;touch()}}));
+ return h('section',{class:'config','aria-label':'项目配置'},h('h2',{text:'项目配置'}),f('training','训练方式'),f('finetune','微调方式'),f('compute','计算资源'));
+}
+function latticeBox(){
+ const L=S.meta.lat,inp=(k,lab,x,y)=>h('div',{class:'node',style:`left:${x}%;top:${y}%`},h('label',{for:'u-'+k,text:lab}),h('input',{id:'u-'+k,type:'number',step:'0.01',min:'0',max:'1',value:L[k],oninput:e=>{L[k]=e.target.value===''?NaN:+e.target.value;touch();updateLattice()}}));
+ const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 100 100');svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('aria-hidden','true');
+ [[50,14,16,50],[50,14,84,50],[16,50,50,86],[84,50,50,86]].forEach(p=>{const l=document.createElementNS(svg.namespaceURI,'line');['x1','y1','x2','y2'].forEach((k,i)=>l.setAttribute(k,p[i]));l.setAttribute('vector-effect','non-scaling-stroke');svg.append(l)});
+ return h('aside',{class:'lattice-box','aria-label':'二阶交互计算器'},h('h2',{text:'二阶交互计算器'}),
+  h('div',{class:'lattice'},svg,inp('ab','U(E+a+b)',50,14),inp('a','U(E+a)',16,50),inp('b','U(E+b)',84,50),inp('e','U(E)',50,86),h('div',{class:'center'},h('b',{id:'gam'}),h('span',{text:'Γ（概率尺度）'}))),
+  h('div',{class:'verdict',id:'verdict','aria-live':'polite'}));
+}
+function updateLattice(){
+ const L=S.meta.lat,g=document.getElementById('gam'),v=document.getElementById('verdict');if(!g)return;
+ const vals=[L.e,L.a,L.b,L.ab];
+ if(vals.some(x=>!Number.isFinite(x)||x<0||x>1)){g.textContent='–';v.replaceChildren(h('p',{text:'输入 0 到 1 之间的期望效用或正确答案概率。'}));return}
+ const G=L.ab-L.a-L.b+L.e,lg=p=>{const c=Math.min(.999,Math.max(.001,p));return Math.log(c/(1-c))},GL=lg(L.ab)-lg(L.a)-lg(L.b)+lg(L.e),eps=.02;
+ g.textContent=(G>=0?'+':'')+G.toFixed(3);
+ const sign=x=>Math.abs(x)<eps?0:Math.sign(x),out=[];
+ out.push(sign(G)>0?'概率尺度上为超可加。':sign(G)<0?'概率尺度上为次可加。':'概率尺度上接近可加。');
+ out.push(`log-odds 尺度 Γ = ${(GL>=0?'+':'')+GL.toFixed(3)}。`);
+ if(sign(G)!==sign(GL))out.push('两个尺度结论不同，这个结果可能来自概率饱和，不能直接判为互补或冗余。');
+ const harm=[];if(L.ab-L.a<-eps)harm.push('已有 a 时加入 b');if(L.ab-L.b<-eps)harm.push('已有 b 时加入 a');
+ if(harm.length)out.push(`${harm.join('、')}的条件边际为负，在该上下文中构成伤害。`);
+ v.replaceChildren(...out.map(t=>h('p',{text:t})));
+}
+function rowsOf(c){const needle=q.toLowerCase();return S[c].filter(x=>(!flt||x.status===flt)&&(!needle||JSON.stringify(x).toLowerCase().includes(needle)))}
+function collection(m){
+ const c=view,sc=SCHEMA[c];
+ const list=h('div',{class:'rows',role:'listbox','aria-label':sc.label+'列表',id:'rows'});
+ const det=h('div',{id:'det'});
+ const head=h('div',{class:'list-head'},
+  h('input',{type:'search',placeholder:`搜索${sc.label}`,'aria-label':`搜索${sc.label}`,value:q,oninput:e=>{q=e.target.value;drawList()}}),
+  h('select',{'aria-label':'按状态筛选',onchange:e=>{flt=e.target.value;drawList()}},h('option',{value:'',text:'全部状态'}),...ST[c].map(s=>h('option',{value:s,text:s,selected:s===flt}))),
+  h('button',{class:'btn primary',onclick:()=>add(c),text:`新建${sc.label}`}));
+ m.replaceChildren(h('div',{class:'page'},h('h1',{text:sc.label}),head,h('div',{class:'split'},list,det)));
+ if(!sel&&S[c].length)sel=S[c][0].id;
+ drawList();drawDetail();
+}
+function drawList(){
+ const c=view,sc=SCHEMA[c],el=document.getElementById('rows');if(!el)return;const rows=rowsOf(c);
+ if(!S[c].length){el.replaceChildren(h('div',{class:'empty',text:`还没有${sc.label}。选择“新建${sc.label}”开始。`}));return}
+ if(!rows.length){el.replaceChildren(h('div',{class:'empty',text:'没有匹配项。修改搜索词或状态筛选。'}));return}
+ el.replaceChildren(...rows.map(x=>h('button',{class:'row',role:'option','aria-selected':x.id===sel?'true':'false',onclick:()=>{sel=x.id;history.replaceState(null,'',`#${c}/${x.id}`);drawList();drawDetail()}},
+  h('span',{class:'t',text:x[sc.title]||'未命名'}),h('span',{class:'s'},h('span',{class:'id',text:x.id}),h('span',{class:pillClass(x.status),text:x.status}),x[sc.sub]?h('span',{text:x[sc.sub]}):null))));
+}
+function drawDetail(){
+ const c=view,sc=SCHEMA[c],el=document.getElementById('det');if(!el)return;const x=S[c].find(o=>o.id===sel);
+ if(!x){el.replaceChildren();return}
+ const box=h('div',{class:'detail'});
+ sc.fields.forEach((f,i)=>box.append(field(c,x,f,i)));
+ box.append(h('div',{class:'detail-foot'},h('span',{class:'id',text:x.id}),h('button',{class:'btn danger',text:'删除',onclick:()=>{if(confirm(`删除 ${x.id}“${x[sc.title]||'未命名'}”？删除后无法撤销。`)){S[c]=S[c].filter(o=>o.id!==x.id);sel=S[c][0]?.id||null;saveNow();render()}}})));
+ el.replaceChildren(box);
+}
+function field(c,x,f,i){
+ const id=`f-${f.k}`,lab=h('label',{for:id,text:f.l}),set=v=>{x[f.k]=v;touch();if(f.t==='title'||f.t==='status'||f.k===SCHEMA[c].sub)drawList()};
+ const on=e=>set(e.target.value);let ctl;
+ if(f.t==='area'){ctl=h('textarea',{id,rows:f.rows||3,oninput:on});ctl.value=x[f.k]||''}
+ else if(f.t==='status'||f.t==='select'){const o=f.t==='status'?ST[c]:f.o;ctl=h('select',{id,onchange:on},...(f.t==='select'?[h('option',{value:'',text:'未指定'})]:[]),...o.map(s=>h('option',{value:s,text:s,selected:x[f.k]===s})))}
+ else if(f.t==='link'){ctl=h('select',{id,onchange:on},h('option',{value:'',text:'无'}),...S[f.to].map(o=>h('option',{value:o.id,text:`${o.id} ${o.title}`,selected:x[f.k]===o.id})))}
+ else if(f.t==='links'){const ids=x[f.k]=x[f.k]||[];return h('div',{class:'field'},h('div',{class:'lab',text:f.l}),h('div',{class:'checks'},...S[f.to].map(o=>h('label',{},h('input',{type:'checkbox',checked:ids.includes(o.id),onchange:e=>{x[f.k]=e.target.checked?[...ids.filter(v=>v!==o.id),o.id]:ids.filter(v=>v!==o.id);touch();drawDetail()}}),h('span',{text:`${o.id} ${o.title}`})))))}
+ else if(f.t==='checks'){const a=x[f.k]=x[f.k]||[];return h('div',{class:'field'},h('div',{class:'lab',text:`${f.l}（${a.length}/${CHECKS.length}）`}),h('div',{class:'checks'},...CHECKS.map((t,n)=>h('label',{},h('input',{type:'checkbox',checked:a.includes(n),onchange:e=>{x[f.k]=e.target.checked?[...a,n]:a.filter(v=>v!==n);touch();drawDetail()}}),h('span',{text:t})))))}
+ else{ctl=h('input',{id,type:f.t==='date'?'date':f.t==='url'?'url':'text',class:f.t==='title'?'big':f.t==='code'?'id':null,value:x[f.k]||'',oninput:on})}
+ const wrap=h('div',{class:'field'},lab,ctl);
+ if(f.t==='url'&&/^https?:\/\//.test(x[f.k]||''))wrap.append(h('a',{href:x[f.k],target:'_blank',rel:'noreferrer',text:'打开原文'}));
+ return wrap;
+}
+function add(c){const sc=SCHEMA[c],n=Math.max(0,...S[c].map(x=>+String(x.id).split('-')[1]||0))+1,id=`${sc.prefix}-${n}`,today=new Date().toLocaleDateString('sv');
+ const x={id,title:'',status:ST[c][0]};if(c==='decisions'||c==='notes')x.date=today;S[c].unshift(x);sel=id;q='';flt='';saveNow();render();document.getElementById('f-title')?.focus()}
+function spec(m){
+ const R=(t,...c)=>h('section',{},h('h2',{text:t}),...c),ul=a=>h('ul',{},...a.map(t=>h('li',{text:t})));
+ m.replaceChildren(h('div',{class:'page ref'},h('h1',{text:'Spec 0.1 要点'}),h('p',{class:'lead',text:'只读摘录。后续指示优先，其余约束以原 spec 为准。'}),
+ R('后续指示',ul(['只做 RL 后训练，不做 SFT。','使用 LoRA 微调，不做全参数训练。','计算资源为 1 张 H200。','这两条覆盖 spec 中“可不训练”的路线；无需训练的方法只作基线。'])),
+ R('中心问题',h('p',{text:'在观察具有互补性、可能冗余或有害、获取与计算均有成本时，如何高效选择视觉证据，并学习能够利用联合收益的观察策略？'})),
+ R('三个层次',ul(['交互表示与估计：哪些观察共同产生收益，估计是否可靠','获取与规划：预算内看什么、以什么分辨率看、何时停止','信用分配与学习：联合收益如何成为训练信号'])),
+ R('数学接口',h('pre',{text:'Delta(a|E) = U(E+a) - U(E)\nGamma(a,b|E) = U(E+a+b) - U(E+a) - U(E+b) + U(E)\nM(b|E,a) = U(E+a+b) - U(E+a)\nmaximize E[terminal task utility] subject to declared budgets'}),h('p',{text:'静态集合 U(E)、策略价值 V_pi(h)、规划预测价值、离线 oracle 效用和在线结果必须分别记录。'})),
+ R('区分这些概念',ul(['回答互补：联合输入帮助回答','行动互补：一个观察改变后续动作价值','顺序敏感：内容不变，只改顺序','冗余：联合收益低于单项和','有害：加入观察后效用下降'])),
+ R('工作边界',ul(['不把加入 history、交互图、两步 lookahead、Shapley 加 RL 直接算创新','不提前限定为先定位再读取、固定双 crop、顺序反转或单一数据集','GPU 训练、共享环境和历史数据修改都需要明确授权','历史结果需回到原始产物，新实验使用独立目录','线上工作台仅在用户要求时同步；MedGaze、简历和 GRA 材料不在本项目内'])),
+ R('环境入口',h('pre',{text:'SSH alias: xzhanglab\nProject root: /net/csefiles/xzhanglab/rmeng41/CVPR\nResearch code: <project root>/evidence_credit\nRuns: <research code>/runs/\nReports: <research code>/reports/\nData: <project root>/datasets'})),
+ R('首个交付',ul(['文献差异矩阵','四条经典路线的假设、障碍和成本','代码与真实运行结果清单','可区分竞争解释的探索实验协议','至少两个可行立题及淘汰条件']))));
+}
+function download(name,type,text){const a=h('a',{href:URL.createObjectURL(new Blob([text],{type})),download:name});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1e3)}
+function md(){let o='# ICML 2027 视觉证据互补研究记录\n';
+ for(const[c,sc]of Object.entries(SCHEMA)){o+=`\n## ${sc.label}\n`;for(const x of S[c]){o+=`\n### ${x.id} ${x.title||'未命名'}\n`;for(const f of sc.fields){if(f.t==='title')continue;let v=x[f.k];if(f.t==='checks')v=(v||[]).map(n=>CHECKS[n]).join('；');if(Array.isArray(v))v=v.join('、');if(v)o+=`- ${f.l}：${String(v).replace(/\n/g,' ')}\n`}}}
+ return o}
+const stamp=()=>new Date().toLocaleDateString('sv');
+document.getElementById('exportJson').onclick=()=>{download(`icml2027-hub-${stamp()}.json`,'application/json',JSON.stringify(S,null,2));setSave('JSON 已导出')};
+document.getElementById('exportMd').onclick=()=>{download(`icml2027-hub-${stamp()}.md`,'text/markdown',md());setSave('Markdown 已导出')};
+document.getElementById('importJson').onclick=()=>document.getElementById('importFile').click();
+document.getElementById('importFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+ try{const d=JSON.parse(await f.text());if(!valid(d))throw 0;if(confirm(`用 ${f.name} 替换当前全部数据？`)){S=d;saveNow();go('home')}}catch(x){setSave('导入失败：文件不是本研究台导出的 JSON',true)}};
+const lf=document.getElementById('linkFile');
+if(!window.showSaveFilePicker)lf.hidden=true;
+lf.onclick=async()=>{try{fileHandle=await showSaveFilePicker({suggestedName:'icml2027-hub.json',types:[{description:'JSON',accept:{'application/json':['.json']}}]});saveNow()}catch(e){if(e.name!=='AbortError')setSave('无法连接文件：'+e.message,true)}};
+addEventListener('storage',e=>{if(e.key===KEY&&e.newValue){try{const d=JSON.parse(e.newValue);if(valid(d)){S=d;render()}}catch(x){}}});
+function route(){const[v,id]=location.hash.slice(1).split('/');if(VIEWS.some(x=>x[0]===v)){view=v;sel=id||null}}
+addEventListener('hashchange',()=>{route();render()});
+S=load();route();render();saveNow();
+try{localStorage.setItem(KEY+':t','1');localStorage.removeItem(KEY+':t');setSave('修改会自动保存到本机浏览器')}catch(e){storageOK=false;setSave('浏览器存储不可用，关闭页面前请导出 JSON',true)}
+</script>
+</body>
+</html>

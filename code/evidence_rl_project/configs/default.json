@@ -1,0 +1,1 @@
+{"model_candidate":"Qwen3-VL-8B","training":"RL post-training with LoRA only","no_sft":true,"gpu_min_free_gb":40,"max_calls":6,"group_size":8}
